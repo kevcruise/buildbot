@@ -1,3 +1,15 @@
+Web
+---
+
+* Tests
+
+Laterz
+......
+
+* websockets are too new and varied to rely on - we'll need to add other comet
+  technologies, or at least https://github.com/gimite/web-socket-js
+  - it's too bad we can't use socket.io :)
+
 Data API
 --------
  - refactor subscription to handle coordination
