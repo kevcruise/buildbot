@@ -76,13 +76,20 @@ class ChangePerspective(NewCredPerspective):
                 changedict['files'][i] = file.decode('utf8', 'replace')
 
         files = []
+        prefixes = self.prefix
+        if not prefixes or isinstance(prefixes, str):
+            prefixes = (prefixes,)
         for path in changedict['files']:
-            if self.prefix:
-                if not path.startswith(self.prefix):
-                    # this file does not start with the prefix, so ignore it
-                    continue
-                path = path[len(self.prefix):]
-            files.append(path)
+            for prefix in prefixes:
+                p = path
+                if prefix:
+                    if not path.startswith(prefix):
+                        # this file does not start with the prefix, 
+                        # so ignore it
+                        continue
+                    p = path[len(prefix):]
+                files.append(p)
+
         changedict['files'] = files
 
         if not files:
@@ -110,7 +117,7 @@ class PBChangeSource(config.ReconfigurableServiceMixin, base.ChangeSource):
         portname = self.registered_port
         d = "PBChangeSource listener on " + str(portname)
         if self.prefix is not None:
-            d += " (prefix '%s')" % self.prefix
+            d += " (prefix '%s')" % (self.prefix,)
         return d
 
     @defer.inlineCallbacks

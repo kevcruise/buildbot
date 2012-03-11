@@ -79,13 +79,44 @@ class TestPBChangeSource(
             self.assertUnregistered(*exp_registration)
 
     def test_perspective(self):
-        self.attachChangeSource(pb.PBChangeSource('alice', 'sekrit', port='8888'))
-        persp = self.changesource.getPerspective(mock.Mock(), 'alice')
+        cs = pb.PBChangeSource('alice', 'sekrit', port='8888')
+        self.attachChangeSource(cs)
+        init_prefix = cs.prefix
+        # with no prefix
+        persp = cs.getPerspective(mock.Mock(), 'alice')
         self.assertIsInstance(persp, pb.ChangePerspective)
+        persp.perspective_addChange(dict(who='me', files=['a'], 
+                                         comments='comm'))
+        self.assertEqual(len(self.changes_added), 1)
+        # with one prefix
+        cs.prefix = 'prefix/'
+        persp = cs.getPerspective(mock.Mock(), 'alice')
+        persp.perspective_addChange(dict(who='me', files=['b', 'prefix/c'], 
+                                         comments='comm'))
+        self.assertEqual(len(self.changes_added), 2)
+        # with multiple prefixes
+        cs.prefix = ('prefix1/', 'prefix2/')
+        persp = cs.getPerspective(mock.Mock(), 'alice')
+        persp.perspective_addChange(dict(who='me', files=['d', 'prefix1/e', 
+                                                          'prefix2/f'], 
+                                         comments='comm'))
+        self.assertEqual(len(self.changes_added), 3)
+        # prefix mismatch
+        persp.perspective_addChange(dict(who='me', files=['dontadd', 
+                                                          'dont/add'], 
+                                         comments='comm'))
+        self.assertEqual(len(self.changes_added), 3)
+        cs.prefix = init_prefix
 
     def test_describe(self):
         cs = pb.PBChangeSource()
+        init_prefix = cs.prefix
         self.assertSubstring("PBChangeSource", cs.describe())
+        cs.prefix = 'test_one'
+        self.assertIn("test_one", cs.describe())
+        cs.prefix = ('test_one', 'test_two')
+        self.assertIn("('test_one', 'test_two')", cs.describe())
+        cs.prefix = init_prefix
 
     def test_describe_prefix(self):
         cs = pb.PBChangeSource(prefix="xyz")
