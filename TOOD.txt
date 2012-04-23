@@ -1,0 +1,16 @@
+Data API
+--------
+
+Still wicked experimental
+ - docs
+   - object paths
+   - object attributes
+ - *strong* assertions about object attributes and types
+ - db API stops using datetimes?
+ - good handling for types in paths - maybe e.g., i:changeid and auto-cast?
+ - good support for translating "acceptable" exceptions into HTTP error codes
+   without tracebacks in logs
+ - support for adding links in www
+   - "automatically" may be very hard
+   - maybe set up "filters" with patterns?, e.g., ('change',) -> add link to
+     each elt
