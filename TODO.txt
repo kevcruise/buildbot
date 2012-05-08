@@ -1,0 +1,18 @@
+Data API
+--------
+ - refactor subscription to handle coordination
+
+after merge
+ - *strong* tests about object attributes and types
+   - endpoint topics
+ - test mq formats on output from with resourcetypes.py
+
+docs
+ - howto: write endpoints
+   - emphasize translation - not necessarily automatic
+
+Later
+.....
+
+incompatible stuff
+ - db API stops using datetimes?
