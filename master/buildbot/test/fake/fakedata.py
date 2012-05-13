@@ -17,6 +17,13 @@ class FakeUpdateComponent(object):
     pass
 
 class FakeDataConnector(object):
+
+    # TODO: when this is actually used, it should work as follows:
+    # - use the real implementation (including endpoints) for getters
+    #   and subscriptions
+    # - implement fake update, control
+    # - expose insertTestData
+
     def __init__(self, master):
         self.master = master
         self.update = FakeUpdateComponent()
