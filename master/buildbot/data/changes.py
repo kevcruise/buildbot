@@ -54,3 +54,8 @@ class Changes(base.Endpoint):
             changes.sort(key=lambda chdict : chdict['changeid'])
             return map(_fixChange, changes)
         return d
+
+class UpdateChanges(base.UpdateMethods):
+
+    def addChange(self):
+        print "add"

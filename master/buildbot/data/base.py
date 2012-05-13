@@ -59,9 +59,13 @@ class Link(object):
 
     __slots__ = [ 'path' ]
 
-    # a link to another resource, specified as a path
     def __init__(self, path):
         self.path = path
 
     def __repr__(self):
         return "Link(%r)" % (self.path,)
+
+class UpdateMethods(object):
+    # base class for classes containing methods that appear at
+    # self.master.data.update
+    pass

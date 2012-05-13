@@ -14,30 +14,42 @@
 # Copyright Buildbot Team Members
 
 import inspect
+from twisted.python import reflect
 from twisted.application import service
 from buildbot.util import pathmatch
-from buildbot.data import update, exceptions, base
+from buildbot.data import exceptions, base
 
 class DataConnector(service.Service):
+
+    submodules = [
+        'buildbot.data.changes',
+    ]
 
     def __init__(self, master):
         self.setName('data')
         self.master = master
-        self.update = update.UpdateComponent(master)
-
         self.matcher = pathmatch.Matcher()
+
         self._setup()
 
     def _setup(self):
-        def _scanModule(mod):
-            for sym in dir(mod):
-                obj = getattr(mod, sym)
-                if inspect.isclass(obj) and issubclass(obj, base.Endpoint):
+        # gather base classes and make a new class to put at self.update
+        bases = []
+        for moduleName in self.submodules:
+            module = reflect.namedModule(moduleName)
+            for sym in dir(module):
+                obj = getattr(module, sym)
+                if not inspect.isclass(obj):
+                    continue
+                if issubclass(obj, base.UpdateMethods):
+                    bases.append(obj)
+                if issubclass(obj, base.Endpoint):
                     self.matcher[obj.pathPattern] = obj(self.master)
 
-        # scan all of the endpoint modules
-        from buildbot.data import changes
-        _scanModule(changes)
+        # build an Update class and instantiate it
+        Update = type('Update', tuple(bases), dict(__slots__=['master']))
+        self.update = Update()
+        self.update.master = self.master
 
     def _lookup(self, path):
         try:

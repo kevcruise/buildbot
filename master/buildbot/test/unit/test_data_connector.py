@@ -22,6 +22,8 @@ from buildbot.test.fake import fakemaster, fakemq
 class DataConnector(unittest.TestCase):
 
     def setUp(self):
+        self.patch(connector.DataConnector, 'submodules',
+                ['buildbot.test.unit.test_data_connector'])
         self.master = fakemaster.make_master()
         self.data = connector.DataConnector(self.master)
 
@@ -35,8 +37,7 @@ class DataConnector(unittest.TestCase):
         self.assertIdentical(self.master, self.data.master)
 
     def test_matchers(self):
-        # pick an arbitrary path and check that it's in there
-        self.assertIsInstance(self.data.matcher[('change',)][0], base.Endpoint)
+        self.assertIsInstance(self.data.matcher[('fake',)][0], FakeEndpoint)
 
     def test_get(self):
         ep = self.patchFooPattern()
@@ -73,3 +74,23 @@ class DataConnector(unittest.TestCase):
             ep.control.assert_called_once_with('foo!', {'arg' : 1},
                                                         {'fooid' : '10'})
         return d
+
+    def test_update(self):
+        self.data.update.fakeMethod()
+        self.assertTrue(self.master.fakeMethodCalled)
+
+
+# classes found by DataConnector due to the patch in setUp above
+
+class FakeEndpoint(base.Endpoint):
+
+    pathPattern = ('fake',)
+
+    def get(self, options, kwargs):
+        return None
+
+
+class FakeUpdateMethods(base.UpdateMethods):
+
+    def fakeMethod(self):
+        self.master.fakeMethodCalled = True
