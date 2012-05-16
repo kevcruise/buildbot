@@ -25,9 +25,8 @@ from twisted.application import service
 
 import buildbot
 import buildbot.pbmanager
-from buildbot.util import epoch2datetime, datetime2epoch
+from buildbot.util import epoch2datetime
 from buildbot.status.master import Status
-from buildbot.changes import changes
 from buildbot.changes.manager import ChangeManager
 from buildbot import interfaces
 from buildbot.process.builder import BuilderControl
@@ -39,7 +38,6 @@ from buildbot.process.botmaster import BotMaster
 from buildbot.process import debug
 from buildbot.process import metrics
 from buildbot.process import cache
-from buildbot.process.users import users
 from buildbot.process.users.manager import UserManagerManager
 from buildbot.status.results import SUCCESS, WARNINGS, FAILURE
 from buildbot import monkeypatches
@@ -317,151 +315,6 @@ class BuildMaster(config.ReconfigurableServiceMixin, service.MultiService):
 
 
     ## triggering methods
-
-    @defer.inlineCallbacks
-    def addChange(self, who=None, files=None, comments=None, author=None,
-            isdir=None, is_dir=None, revision=None, when=None,
-            when_timestamp=None, branch=None, category=None, revlink='',
-            properties={}, repository='', codebase=None, project='', src=None):
-        """
-        Add a change to the buildmaster and act on it.
-
-        This is a wrapper around L{ChangesConnectorComponent.addChange} which
-        also acts on the resulting change and returns a L{Change} instance.
-
-        Note that all parameters are keyword arguments, although C{who},
-        C{files}, and C{comments} can be specified positionally for
-        backward-compatibility.
-
-        @param author: the author of this change
-        @type author: unicode string
-
-        @param who: deprecated name for C{author}
-
-        @param files: a list of filenames that were changed
-        @type branch: list of unicode strings
-
-        @param comments: user comments on the change
-        @type branch: unicode string
-
-        @param is_dir: deprecated
-
-        @param isdir: deprecated name for C{is_dir}
-
-        @param revision: the revision identifier for this change
-        @type revision: unicode string
-
-        @param when_timestamp: when this change occurred, or the current time
-          if None
-        @type when_timestamp: datetime instance or None
-
-        @param when: deprecated name and type for C{when_timestamp}
-        @type when: integer (UNIX epoch time) or None
-
-        @param branch: the branch on which this change took place
-        @type branch: unicode string
-
-        @param category: category for this change (arbitrary use by Buildbot
-        users)
-        @type category: unicode string
-
-        @param revlink: link to a web view of this revision
-        @type revlink: unicode string
-
-        @param properties: properties to set on this change
-        @type properties: dictionary with string keys and simple values
-        (JSON-able).  Note that the property source is I{not} included
-        in this dictionary.
-
-        @param repository: the repository in which this change took place
-        @type repository: unicode string
-
-        @param project: the project this change is a part of
-        @type project: unicode string
-
-        @param src: source of the change (vcs or other)
-        @type src: string
-
-        @returns: L{Change} instance via Deferred
-        """
-        metrics.MetricCountEvent.log("added_changes", 1)
-
-        # handle translating deprecated names into new names for db.changes
-        def handle_deprec(oldname, old, newname, new, default=None,
-                          converter = lambda x:x):
-            if old is not None:
-                if new is None:
-                    log.msg("WARNING: change source is using deprecated "
-                            "addChange parameter '%s'" % oldname)
-                    return converter(old)
-                raise TypeError("Cannot provide '%s' and '%s' to addChange"
-                                % (oldname, newname))
-            if new is None:
-                new = default
-            return new
-
-        author = handle_deprec("who", who, "author", author)
-        is_dir = handle_deprec("isdir", isdir, "is_dir", is_dir,
-                                default=0)
-        when_timestamp = handle_deprec("when", when,
-                                "when_timestamp", when_timestamp,
-                                converter=epoch2datetime)
-
-        # add a source to each property
-        for n in properties:
-            properties[n] = (properties[n], 'Change')
-
-        if codebase is None:
-            if self.config.codebaseGenerator is not None:
-                chdict = {
-                    'changeid': None,
-                    'author': author,
-                    'files': files,
-                    'comments': comments,
-                    'is_dir': is_dir,
-                    'revision': revision,
-                    'when_timestamp': when_timestamp,
-                    'branch': branch,
-                    'category': category,
-                    'revlink': revlink,
-                    'properties': properties,
-                    'repository': repository,
-                    'project': project,
-                }
-                codebase = self.config.codebaseGenerator(chdict)
-            else:
-                codebase = ''
-
-        if src:
-            # create user object, returning a corresponding uid
-            uid = yield users.createUserObject(self, author, src)
-        else:
-            uid = None
-
-        # add the Change to the database
-        changeid = yield self.db.changes.addChange(author=author, files=files,
-                            comments=comments, is_dir=is_dir,
-                            revision=revision, when_timestamp=when_timestamp,
-                            branch=branch, category=category,
-                            revlink=revlink, properties=properties,
-                            repository=repository, project=project,
-                            codebase=codebase, uid=uid)
-
-        # convert the changeid to a Change instance
-        chdict = yield self.db.changes.getChange(changeid)
-        change = yield changes.Change.fromChdict(self, chdict)
-
-        # log, being careful to handle funny characters
-        msg = u"added change %s to database" % change
-        log.msg(msg.encode('utf-8', 'replace'))
-
-        # new-style notification
-        msg = dict()
-        msg.update(chdict)
-        msg['when_timestamp'] = datetime2epoch(msg['when_timestamp'])
-        self.mq.produce("change.%d.new" % changeid, msg)
-
-        defer.returnValue(change)
 
     @defer.inlineCallbacks
     def addBuildset(self, scheduler, **kwargs):

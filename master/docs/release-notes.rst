@@ -1,16 +1,11 @@
 Release Notes for Buildbot |version|
 ====================================
 
-..
-    Any change that adds a feature or fixes a bug should have an entry here.
-    Most simply need an additional bulleted list item, but more significant
-    changes can be given a subsection of their own.
-
 Nine
-++++
+----
 
 ..
-    For the mo ment, release notes for the nine branch go here, for ease of merging.
+    For the moment, release notes for the nine branch go here, for ease of merging.
 
 * Buildbot's tests now require at least Mock-0.8.0.
 
@@ -18,8 +13,15 @@ Nine
   :bb:cfg:`db_poll_interval` configuration parameter and the :bb:cfg:`db` key
   of the same name are deprecated and will be ignored.
 
-Master
-++++++
+* The :py:meth:`~buildbot.data.changes.UpdateChanges.addChange` method has changed:
+  * it should be called as ``self.master.data.update.addChange``;
+  * it now returns a uid; and
+  * it no longer accepts the deprecated parameters ``who``, ``isdir``, ``is_dir``, and ``when``.  Please adjust any custom change sources accordingly.
+
+..
+    Any change that adds a feature or fixes a bug should have an entry here.
+    Most simply need an additional bulleted list item, but more significant
+    changes can be given a subsection of their own.
 
 The following are the release notes for Buildbot |version|.
 

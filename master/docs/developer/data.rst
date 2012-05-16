@@ -103,9 +103,32 @@ Updates
 
 The update section is available at `self.master.data.update`, and contains a number of ad-hoc methods needed by the process modules.
 
-..
-    TODO: document it
+The methods are divided into different classes, but through some inheritance magic, all appear as attributes of the ``self.master.data.update``.
 
+.. py:class:: buildbot.data.changes.UpdateChanges
+
+    .. py:method:: addChange(files=None, comments=None, author=None, revision=None, when_timestamp=None, branch=None, category=None, revlink='', properties={}, repository='', codebase=None, project='', src=None):
+
+        :param files: a list of filenames that were changed
+        :type files: list of unicode strings
+        :param unicode comments: user comments on the change
+        :param unicode author: the author of this change
+        :param unicode revision: the revision identifier for this change
+        :param datetime when_timestamp: when this change occurred, or the current time if None
+        :param unicode branch: the branch on which this change took place
+        :param unicode category: category for this change
+        :param string revlink: link to a web view of this revision
+        :param properties: properties to set on this change
+        :type properties: dictionary with string keys and simple values (JSON-able).  Note that the property source is *not* included in this dictionary.
+        :param unicode repository: the repository in which this change took place
+        :param unicode project: the project this change is a part of
+        :param unicode src: source of the change (vcs or other)
+        :returns: the ID of the new change
+
+        Add a new change to Buildbot.
+        This method is the interface between change sources and the rest of Buildbot.
+
+        All parameters should be passed as keyword arguments.
 
 Links
 .....

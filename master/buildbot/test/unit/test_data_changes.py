@@ -15,7 +15,7 @@
 
 from twisted.trial import unittest
 from buildbot.data import changes, exceptions
-from buildbot.test.util import resourcetype, endpoint
+from buildbot.test.util import resourcetype, endpoint, db
 from buildbot.test.fake import fakedb
 
 class Change(endpoint.EndpointMixin, unittest.TestCase):
@@ -93,3 +93,46 @@ class Changes(endpoint.EndpointMixin, unittest.TestCase):
     def test_get_invalid_count(self):
         d = self.callGet(dict(count='ten'), dict())
         self.assertFailure(d, exceptions.InvalidOptionException)
+
+class UpdateChanges(db.RealDatabaseMixin, unittest.TestCase):
+
+    def setUp(self):
+        d = self.setUpConnectorComponent(
+            table_names=['changes', 'change_files',
+                'change_properties', 'scheduler_changes', 'objects',
+                'sourcestampsets', 'sourcestamps', 'sourcestamp_changes',
+                'patches', 'change_users', 'users'])
+
+    def tearDown(self):
+        return self.tearDownRealDatabase()
+
+    def test_change_message(self):
+        d = self.master.addChange(author='warner', branch='warnerdb',
+                category='devel', comments='fix whitespace',
+                files=[u'master/buildbot/__init__.py'],
+                project='Buildbot', properties={},
+                repository='git://warner', revision='0e92a098b',
+                revlink='http://warner/0e92a098b',
+                when_timestamp=epoch2datetime(256738404))
+        def check(change):
+            # check the correct message was received
+            self.assertEqual(self.master.mq.productions, [
+                ( 'change.500.new', {
+                    'author': u'warner',
+                    'branch': u'warnerdb',
+                    'category': u'devel',
+                    'codebase': '',
+                    'comments': u'fix whitespace',
+                    'changeid' : change.number,
+                    'files': [u'master/buildbot/__init__.py'],
+                    'is_dir': 0,
+                    'project': u'Buildbot',
+                    'properties': {},
+                    'repository': u'git://warner',
+                    'revision': u'0e92a098b',
+                    'revlink': u'http://warner/0e92a098b',
+                    'when_timestamp': 256738404,
+                })
+            ])
+        d.addCallback(check)
+        return d

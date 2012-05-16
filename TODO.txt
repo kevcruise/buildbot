@@ -1,18 +1,18 @@
 Data API
 --------
+ - (in prog) docs + tests for addChange
+ - test mq formats on output from with resourcetypes.py
  - refactor subscription to handle coordination
 
-after merge
- - *strong* tests about object attributes and types
-   - endpoint topics
- - test mq formats on output from with resourcetypes.py
 
 docs
  - howto: write endpoints
    - emphasize translation - not necessarily automatic
+ - sort out events and messages
 
 Later
 .....
 
 incompatible stuff
  - db API stops using datetimes?
+ - drop is_dir column from changes

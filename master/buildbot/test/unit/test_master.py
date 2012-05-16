@@ -51,37 +51,6 @@ class GlobalMessages(dirs.DirsMixin, unittest.TestCase):
     # master.$masterid.{started,stopped} are checked in
     # StartupAndReconfig.test_startup_ok, below
 
-    def test_change_message(self):
-        d = self.master.addChange(author='warner', branch='warnerdb',
-                category='devel', comments='fix whitespace',
-                files=[u'master/buildbot/__init__.py'],
-                project='Buildbot', properties={},
-                repository='git://warner', revision='0e92a098b',
-                revlink='http://warner/0e92a098b',
-                when_timestamp=epoch2datetime(256738404))
-        def check(change):
-            # check the correct message was received
-            self.assertEqual(self.master.mq.productions, [
-                ( 'change.500.new', {
-                    'author': u'warner',
-                    'branch': u'warnerdb',
-                    'category': u'devel',
-                    'codebase': '',
-                    'comments': u'fix whitespace',
-                    'changeid' : change.number,
-                    'files': [u'master/buildbot/__init__.py'],
-                    'is_dir': 0,
-                    'project': u'Buildbot',
-                    'properties': {},
-                    'repository': u'git://warner',
-                    'revision': u'0e92a098b',
-                    'revlink': u'http://warner/0e92a098b',
-                    'when_timestamp': 256738404,
-                })
-            ])
-        d.addCallback(check)
-        return d
-
     def test_buildset_messages(self):
         sourcestampsetid=111
 

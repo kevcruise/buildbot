@@ -17,7 +17,11 @@ Changes
     :attr string repository: repository where this change occurred
     :attr string project: user-defined project to which this change corresponds
     :attr string codebase: codebase in this repository
-    :attr Link link: link for this change
+    :attr Link link: link for this change (omitted in :bb:event:`change.$changeid.new` messages)
+
+    TODO: uid
+
+    A change resource represents a change to the source code monitored by Buildbot.
 
     .. bb:rpath:: /change
 
@@ -26,9 +30,18 @@ Changes
         This path lists changes, sorted by ID.
         The ``count`` option can be used to limit the number of changes.
 
+        .. bb:event:: /change new
+
+            :routing_key change.$changeid.new:
+
+            TODO: this should be ```change.new`` to match the path
+
+            A new change has been added to the cluster.
+
+            The message contains
+
     .. bb:rpath:: /change/:changeid
 
         :pathkey integer changeid: the ID of the change
         :event new: the change has just been added
 
-    A change resource represents a change to the source code monitored by Buildbot.
